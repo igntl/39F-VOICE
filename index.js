@@ -1,13 +1,19 @@
 const { Client, GatewayIntentBits } = require("discord.js");
-const {
-  joinVoiceChannel,
-  createAudioPlayer,
-  createAudioResource,
-  AudioPlayerStatus
-} = require("@discordjs/voice");
+const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require("@discordjs/voice");
+const express = require("express");
 
-const play = require("play-dl");
+const app = express();
 
+// 🌐 حل مشكلة Render (مهم جدًا)
+app.get("/", (req, res) => {
+  res.send("Bot is running");
+});
+
+app.listen(3000, () => {
+  console.log("🌐 Web server ready");
+});
+
+// 🤖 البوت
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -19,84 +25,73 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// 🔊 رابط صوت مباشر (يشتغل 100%)
-const SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b3e9fefc1.mp3";
+// 🎧 مسار الصوت (لازم يكون نفس الاسم)
+const AUDIO_FILE = "./vine-boom.mp3";
 
-let connection = null;
-let player = createAudioPlayer();
-let isLooping = false;
+let interval = null;
 
-// تشغيل الصوت
-async function playSound() {
-  const stream = await play.stream(SOUND_URL);
-  const resource = createAudioResource(stream.stream, {
-    inputType: stream.type
-  });
-  player.play(resource);
-}
-
-// إعادة تلقائية
-player.on(AudioPlayerStatus.Idle, () => {
-  if (isLooping) {
-    playSound();
-  }
+// 🚀 تشغيل البوت
+client.once("ready", () => {
+  console.log(`✅ ${client.user.tag} شغال`);
 });
 
+// 🎯 الأوامر
 client.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
 
-  const channel = msg.member.voice.channel;
-
-  // دخول + تشغيل
+  // ▶️ دخول وتشغيل الصوت
   if (msg.content === "!join") {
-
-    if (!channel) {
-      return msg.reply("❌ ادخل روم صوتي");
+    if (!msg.member.voice.channel) {
+      return msg.reply("❌ ادخل روم صوتي أول");
     }
 
-    connection = joinVoiceChannel({
-      channelId: channel.id,
+    const connection = joinVoiceChannel({
+      channelId: msg.member.voice.channel.id,
       guildId: msg.guild.id,
       adapterCreator: msg.guild.voiceAdapterCreator
     });
 
+    const player = createAudioPlayer();
+    const resource = createAudioResource(AUDIO_FILE);
+
+    player.play(resource);
     connection.subscribe(player);
 
-    isLooping = false;
-    await playSound();
-
-    msg.reply("🎧 دخل وشغل الصوت");
+    msg.reply("🔊 دخلت وشغلت الصوت");
   }
 
-  // سبام
-  if (msg.content === "!loop") {
-
-    if (!connection) {
-      return msg.reply("❌ استخدم !join أول");
+  // 🔁 سبام صوت
+  if (msg.content === "!spam") {
+    if (!msg.member.voice.channel) {
+      return msg.reply("❌ ادخل روم صوتي أول");
     }
 
-    isLooping = true;
-    await playSound();
+    const connection = joinVoiceChannel({
+      channelId: msg.member.voice.channel.id,
+      guildId: msg.guild.id,
+      adapterCreator: msg.guild.voiceAdapterCreator
+    });
 
-    msg.reply("🔁 بدأ السبام");
+    const player = createAudioPlayer();
+
+    interval = setInterval(() => {
+      const resource = createAudioResource(AUDIO_FILE);
+      player.play(resource);
+      connection.subscribe(player);
+    }, 4000); // كل 4 ثواني
+
+    msg.reply("🔥 بدأ السبام الصوتي");
   }
 
-  // إيقاف
+  // ⛔ إيقاف
   if (msg.content === "!stop") {
-
-    isLooping = false;
-
-    if (connection) {
-      connection.destroy();
-      connection = null;
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
     }
 
-    msg.reply("🛑 وقف");
+    msg.reply("🛑 تم إيقاف السبام");
   }
-});
-
-client.once("ready", () => {
-  console.log(`✅ ${client.user.tag} شغال`);
 });
 
 client.login(TOKEN);
