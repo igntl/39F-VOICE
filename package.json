@@ -1,7 +1,7 @@
 {
-  "name": "community-ticket-bot",
+  "name": "islam-reminder-bot",
   "version": "1.0.0",
-  "description": "Discord Community Ticket & XP Bot",
+  "description": "Discord Islamic Reminder Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
