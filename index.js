@@ -5,7 +5,7 @@ const client = new Client({
 });
 
 const TOKEN = process.env.TOKEN;
-const CHANNEL_ID = "1483676942698811543";
+const CHANNEL_ID = "148367694269881154";
 
 // 📿 قائمة الأذكار
 const azkar = [
