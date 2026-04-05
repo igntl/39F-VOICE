@@ -23,43 +23,46 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// ⚙️ عدل هذي
-const STAFF_ROLE = "PUT_ROLE_ID";
-const LOG_CHANNEL = "PUT_LOG_CHANNEL_ID";
+const STAFF_ROLE = "1475334752436359320";
+const LOG_CHANNEL = "1490286354175758366";
+const CATEGORY_ID = "1490286713887526952";
 
-// 📊 XP
 let xp = {};
 if (fs.existsSync("xp.json")) {
   xp = JSON.parse(fs.readFileSync("xp.json"));
 }
 
-// 🎟️ التذاكر
 let openTickets = new Map();
+let cooldown = new Set();
 
-// 🟢 تشغيل
 client.once("ready", () => {
   console.log(`✅ ${client.user.tag}`);
 });
 
-// 🎟️ بانل
 client.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
 
-  // 📊 نظام XP
-  if (!xp[msg.author.id]) xp[msg.author.id] = { xp: 0, level: 1 };
+  // XP
+  if (!cooldown.has(msg.author.id)) {
 
-  xp[msg.author.id].xp += 5;
+    if (!xp[msg.author.id]) xp[msg.author.id] = { xp: 0, level: 1 };
 
-  if (xp[msg.author.id].xp >= xp[msg.author.id].level * 100) {
-    xp[msg.author.id].xp = 0;
-    xp[msg.author.id].level++;
+    xp[msg.author.id].xp += 5;
 
-    msg.channel.send(`🎉 ${msg.author} وصلت لفل ${xp[msg.author.id].level}`);
+    if (xp[msg.author.id].xp >= xp[msg.author.id].level * 100) {
+      xp[msg.author.id].xp = 0;
+      xp[msg.author.id].level++;
+
+      msg.channel.send(`🎉 ${msg.author} وصلت لفل ${xp[msg.author.id].level}`);
+    }
+
+    fs.writeFileSync("xp.json", JSON.stringify(xp, null, 2));
+
+    cooldown.add(msg.author.id);
+    setTimeout(() => cooldown.delete(msg.author.id), 5000);
   }
 
-  fs.writeFileSync("xp.json", JSON.stringify(xp, null, 2));
-
-  // 🎟️ بانل
+  // 🎟️ Panel
   if (msg.content === "!tic") {
 
     const embed = new EmbedBuilder()
@@ -102,7 +105,6 @@ client.on("messageCreate", async (msg) => {
 
 });
 
-// 🎯 التذاكر
 client.on(Events.InteractionCreate, async (interaction) => {
 
   const log = client.channels.cache.get(LOG_CHANNEL);
@@ -110,12 +112,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isStringSelectMenu()) {
 
     if (openTickets.has(interaction.user.id)) {
-      return interaction.reply({ content: "❌ عندك تذكرة", ephemeral: true });
+      return interaction.reply({ content: "❌ عندك تذكرة مفتوحة", ephemeral: true });
     }
 
     const channel = await interaction.guild.channels.create({
-      name: `ticket-${interaction.user.username}`,
+      name: `ticket-${interaction.user.username}-${Math.floor(Math.random()*9999)}`,
       type: ChannelType.GuildText,
+      parent: CATEGORY_ID, // 🔥 هنا الكاتقوري
       topic: interaction.user.id,
       permissionOverwrites: [
         { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
@@ -129,7 +132,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const embed = new EmbedBuilder()
       .setColor("#2b2d31")
       .setTitle("🎟️ تذكرة")
-      .setDescription(`مرحباً ${interaction.user}`);
+      .setDescription(`مرحباً ${interaction.user} 🤍\n\nاكتب طلبك وسيتم الرد عليك قريباً`);
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId("close").setLabel("🔒 إغلاق").setStyle(ButtonStyle.Danger),
@@ -144,10 +147,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.customId === "close") {
-    await interaction.reply("🔒 تم الإغلاق");
+    await interaction.reply("🔒 تم إغلاق التذكرة");
   }
 
   if (interaction.customId === "delete") {
+
+    if (!interaction.member.roles.cache.has(STAFF_ROLE)) {
+      return interaction.reply({ content: "❌ للإدارة فقط", ephemeral: true });
+    }
+
     await interaction.reply("🗑️ حذف...");
     setTimeout(() => interaction.channel.delete(), 2000);
   }
