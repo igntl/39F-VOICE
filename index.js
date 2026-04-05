@@ -6,6 +6,8 @@ const {
   AudioPlayerStatus
 } = require("@discordjs/voice");
 
+const path = require("path");
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -17,16 +19,15 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// 🔊 صوت تجريبي
-const SOUND_URL = "https://www.myinstants.com/media/sounds/vine-boom.mp3";
-
 let connection = null;
 let player = createAudioPlayer();
 let isLooping = false;
 
 // 🎧 تشغيل الصوت
 function playSound() {
-  const resource = createAudioResource(SOUND_URL);
+  const resource = createAudioResource(
+    path.join(__dirname, "vine-boom.mp3") // 👈 اسم ملفك
+  );
   player.play(resource);
 }
 
@@ -42,11 +43,11 @@ client.on("messageCreate", async (msg) => {
 
   const channel = msg.member.voice.channel;
 
-  // دخول + تشغيل مرة
+  // 🎧 دخول + تشغيل مرة
   if (msg.content === "!join") {
 
     if (!channel) {
-      return msg.reply("❌ ادخل روم صوتي");
+      return msg.reply("❌ ادخل روم صوتي أول");
     }
 
     connection = joinVoiceChannel({
@@ -63,11 +64,11 @@ client.on("messageCreate", async (msg) => {
     msg.reply("🎧 دخل وشغل الصوت");
   }
 
-  // سبام
+  // 🔁 سبام
   if (msg.content === "!loop") {
 
     if (!connection) {
-      return msg.reply("❌ شغل !join أول");
+      return msg.reply("❌ استخدم !join أول");
     }
 
     isLooping = true;
@@ -76,7 +77,7 @@ client.on("messageCreate", async (msg) => {
     msg.reply("🔁 بدأ التكرار");
   }
 
-  // إيقاف
+  // 🛑 إيقاف
   if (msg.content === "!stop") {
 
     isLooping = false;
@@ -86,7 +87,7 @@ client.on("messageCreate", async (msg) => {
       connection = null;
     }
 
-    msg.reply("🛑 وقف وطلع");
+    msg.reply("🛑 تم الإيقاف");
   }
 });
 
