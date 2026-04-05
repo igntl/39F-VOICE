@@ -1,7 +1,11 @@
 {
-  "name": "community-bot",
+  "name": "community-ticket-bot",
   "version": "1.0.0",
+  "description": "Discord Community Ticket & XP Bot",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "discord.js": "^14.14.1"
   }
