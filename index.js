@@ -6,7 +6,7 @@ const {
   AudioPlayerStatus
 } = require("@discordjs/voice");
 
-const path = require("path");
+const play = require("play-dl");
 
 const client = new Client({
   intents: [
@@ -19,19 +19,23 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
+// 🔊 رابط صوت مباشر (يشتغل 100%)
+const SOUND_URL = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b3e9fefc1.mp3";
+
 let connection = null;
 let player = createAudioPlayer();
 let isLooping = false;
 
-// 🎧 تشغيل الصوت
-function playSound() {
-  const resource = createAudioResource(
-    path.join(__dirname, "vine-boom.mp3") // 👈 اسم ملفك
-  );
+// تشغيل الصوت
+async function playSound() {
+  const stream = await play.stream(SOUND_URL);
+  const resource = createAudioResource(stream.stream, {
+    inputType: stream.type
+  });
   player.play(resource);
 }
 
-// 🔁 إعادة تلقائية
+// إعادة تلقائية
 player.on(AudioPlayerStatus.Idle, () => {
   if (isLooping) {
     playSound();
@@ -43,11 +47,11 @@ client.on("messageCreate", async (msg) => {
 
   const channel = msg.member.voice.channel;
 
-  // 🎧 دخول + تشغيل مرة
+  // دخول + تشغيل
   if (msg.content === "!join") {
 
     if (!channel) {
-      return msg.reply("❌ ادخل روم صوتي أول");
+      return msg.reply("❌ ادخل روم صوتي");
     }
 
     connection = joinVoiceChannel({
@@ -59,12 +63,12 @@ client.on("messageCreate", async (msg) => {
     connection.subscribe(player);
 
     isLooping = false;
-    playSound();
+    await playSound();
 
     msg.reply("🎧 دخل وشغل الصوت");
   }
 
-  // 🔁 سبام
+  // سبام
   if (msg.content === "!loop") {
 
     if (!connection) {
@@ -72,12 +76,12 @@ client.on("messageCreate", async (msg) => {
     }
 
     isLooping = true;
-    playSound();
+    await playSound();
 
-    msg.reply("🔁 بدأ التكرار");
+    msg.reply("🔁 بدأ السبام");
   }
 
-  // 🛑 إيقاف
+  // إيقاف
   if (msg.content === "!stop") {
 
     isLooping = false;
@@ -87,7 +91,7 @@ client.on("messageCreate", async (msg) => {
       connection = null;
     }
 
-    msg.reply("🛑 تم الإيقاف");
+    msg.reply("🛑 وقف");
   }
 });
 
