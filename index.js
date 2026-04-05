@@ -1,10 +1,10 @@
 const { Client, GatewayIntentBits } = require("discord.js");
-const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require("@discordjs/voice");
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require("@discordjs/voice");
 const express = require("express");
 
 const app = express();
 
-// 🌐 حل مشكلة Render (مهم جدًا)
+// 🌐 حل Render
 app.get("/", (req, res) => {
   res.send("Bot is running");
 });
@@ -25,24 +25,22 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 
-// 🎧 مسار الصوت (لازم يكون نفس الاسم)
-const AUDIO_FILE = "./vine-boom.mp3";
+// 🔊 رابط صوت جاهز (يشتغل بدون مشاكل)
+const AUDIO_URL = "https://www.soundjay.com/buttons/sounds/button-16.mp3";
 
 let interval = null;
 
-// 🚀 تشغيل البوت
 client.once("ready", () => {
   console.log(`✅ ${client.user.tag} شغال`);
 });
 
-// 🎯 الأوامر
 client.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
 
-  // ▶️ دخول وتشغيل الصوت
+  // ▶️ تشغيل مرة
   if (msg.content === "!join") {
     if (!msg.member.voice.channel) {
-      return msg.reply("❌ ادخل روم صوتي أول");
+      return msg.reply("❌ ادخل روم صوتي");
     }
 
     const connection = joinVoiceChannel({
@@ -52,18 +50,18 @@ client.on("messageCreate", async (msg) => {
     });
 
     const player = createAudioPlayer();
-    const resource = createAudioResource(AUDIO_FILE);
+    const resource = createAudioResource(AUDIO_URL);
 
     player.play(resource);
     connection.subscribe(player);
 
-    msg.reply("🔊 دخلت وشغلت الصوت");
+    msg.reply("🔊 اشتغلت");
   }
 
-  // 🔁 سبام صوت
+  // 🔁 سبام
   if (msg.content === "!spam") {
     if (!msg.member.voice.channel) {
-      return msg.reply("❌ ادخل روم صوتي أول");
+      return msg.reply("❌ ادخل روم صوتي");
     }
 
     const connection = joinVoiceChannel({
@@ -75,12 +73,12 @@ client.on("messageCreate", async (msg) => {
     const player = createAudioPlayer();
 
     interval = setInterval(() => {
-      const resource = createAudioResource(AUDIO_FILE);
+      const resource = createAudioResource(AUDIO_URL);
       player.play(resource);
       connection.subscribe(player);
-    }, 4000); // كل 4 ثواني
+    }, 4000);
 
-    msg.reply("🔥 بدأ السبام الصوتي");
+    msg.reply("🔥 سبام شغال");
   }
 
   // ⛔ إيقاف
@@ -89,8 +87,7 @@ client.on("messageCreate", async (msg) => {
       clearInterval(interval);
       interval = null;
     }
-
-    msg.reply("🛑 تم إيقاف السبام");
+    msg.reply("🛑 وقفنا");
   }
 });
 
