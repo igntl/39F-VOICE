@@ -8,7 +8,7 @@ const client = new Client({
 const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = "1483676942698811543";
 
-// 📿 أذكار متنوعة
+// 📿 أذكار
 const azkar = [
   "سبحان الله وبحمده سبحان الله العظيم",
   "أستغفر الله العظيم وأتوب إليه",
@@ -22,59 +22,130 @@ const azkar = [
   "إن الصلاة كانت على المؤمنين كتابًا موقوتًا"
 ];
 
-// 🕌 أوقات الصلاة
+// 📖 آيات
+const ayat = [
+  "﴿ فاذكروني أذكركم ﴾",
+  "﴿ إن مع العسر يسرا ﴾",
+  "﴿ والله خير الرازقين ﴾",
+  "﴿ إن الله مع الصابرين ﴾"
+];
+
+// 🕌 أحاديث
+const ahadith = [
+  "قال ﷺ: أحب الكلام إلى الله سبحان الله وبحمده",
+  "قال ﷺ: من قال لا إله إلا الله دخل الجنة",
+  "قال ﷺ: الدين النصيحة"
+];
+
+// 🤲 أدعية
+const duaa = [
+  "اللهم اغفر لنا ولوالدينا",
+  "اللهم ارزقنا الجنة",
+  "اللهم اجعلنا من الذاكرين",
+  "اللهم فرج همومنا"
+];
+
 let prayerTimes = {};
+let lastZekr = "";
 
-// 📥 جلب أوقات الصلاة (مكة)
+// 📥 جلب أوقات الصلاة
 async function getPrayerTimes() {
-  try {
-    const res = await fetch("http://api.aladhan.com/v1/timingsByCity?city=Mecca&country=Saudi Arabia&method=4");
-    const data = await res.json();
+  const res = await fetch("http://api.aladhan.com/v1/timingsByCity?city=Mecca&country=Saudi Arabia&method=4");
+  const data = await res.json();
 
-    prayerTimes = {
-      Fajr: data.data.timings.Fajr,
-      Dhuhr: data.data.timings.Dhuhr,
-      Asr: data.data.timings.Asr,
-      Maghrib: data.data.timings.Maghrib,
-      Isha: data.data.timings.Isha
-    };
+  prayerTimes = {
+    Fajr: data.data.timings.Fajr,
+    Dhuhr: data.data.timings.Dhuhr,
+    Asr: data.data.timings.Asr,
+    Maghrib: data.data.timings.Maghrib,
+    Isha: data.data.timings.Isha
+  };
 
-    console.log("✅ تم تحديث أوقات الصلاة");
-  } catch (err) {
-    console.log("❌ خطأ في جلب أوقات الصلاة");
-  }
+  console.log("✅ تحديث الصلاة");
 }
 
 client.once("ready", async () => {
-  console.log(`✅ ${client.user.tag} شغال`);
+  console.log(`✅ ${client.user.tag}`);
 
   const channel = await client.channels.fetch(CHANNEL_ID);
-  if (!channel) return console.log("❌ الروم غير موجود");
 
-  // تحميل أوقات الصلاة
   await getPrayerTimes();
-
-  // تحديث يومي
   setInterval(getPrayerTimes, 1000 * 60 * 60 * 24);
 
-  // 📿 أذكار كل 10 دقايق
+  // 📿 أذكار (بدون تكرار)
   setInterval(() => {
-    const random = azkar[Math.floor(Math.random() * azkar.length)];
+    let random;
+    do {
+      random = azkar[Math.floor(Math.random() * azkar.length)];
+    } while (random === lastZekr);
+
+    lastZekr = random;
 
     const embed = new EmbedBuilder()
       .setColor("#00ff88")
       .setTitle("🕊️ ذكر")
-      .setDescription(`**${random}**\n\n📿 اذكر الله يذكرك`)
-      .setFooter({ text: "🤍 لا تنس الذكر" });
+      .setDescription(`**${random}**\n\n📿 اذكر الله يذكرك`);
 
     channel.send({ embeds: [embed] });
 
   }, 1000 * 60 * 10);
 
-  // 🕌 فحص الصلاة كل دقيقة
+  // 📖 آية كل ساعة
   setInterval(() => {
-    const now = new Date();
-    const time = now.toTimeString().slice(0,5);
+    const random = ayat[Math.floor(Math.random() * ayat.length)];
+
+    channel.send({
+      embeds: [new EmbedBuilder()
+        .setColor("#3498db")
+        .setTitle("📖 آية")
+        .setDescription(random)]
+    });
+
+  }, 1000 * 60 * 60);
+
+  // 🕌 حديث كل ساعتين
+  setInterval(() => {
+    const random = ahadith[Math.floor(Math.random() * ahadith.length)];
+
+    channel.send({
+      embeds: [new EmbedBuilder()
+        .setColor("#9b59b6")
+        .setTitle("🕌 حديث")
+        .setDescription(random)]
+    });
+
+  }, 1000 * 60 * 60 * 2);
+
+  // 🤲 دعاء كل 90 دقيقة
+  setInterval(() => {
+    const random = duaa[Math.floor(Math.random() * duaa.length)];
+
+    channel.send({
+      embeds: [new EmbedBuilder()
+        .setColor("#e67e22")
+        .setTitle("🤲 دعاء")
+        .setDescription(random)]
+    });
+
+  }, 1000 * 60 * 90);
+
+  // 🌅 صباح / مساء
+  setInterval(() => {
+    const time = new Date().toTimeString().slice(0,5);
+
+    if (time === "06:00") {
+      channel.send("🌅 أذكار الصباح 🤍");
+    }
+
+    if (time === "18:00") {
+      channel.send("🌙 أذكار المساء 🤍");
+    }
+
+  }, 60000);
+
+  // 🕌 الصلاة
+  setInterval(() => {
+    const now = new Date().toTimeString().slice(0,5);
 
     const names = {
       Fajr: "الفجر",
@@ -85,15 +156,14 @@ client.once("ready", async () => {
     };
 
     for (const key in prayerTimes) {
-      if (time === prayerTimes[key]) {
+      if (now === prayerTimes[key]) {
 
-        const embed = new EmbedBuilder()
-          .setColor("#FFD700")
-          .setTitle("🕌 وقت الصلاة")
-          .setDescription(`حان الآن وقت صلاة **${names[key]}**\n\n⏰ لا تنس الصلاة`)
-          .setFooter({ text: "الصلاة نور 🤍" });
-
-        channel.send({ embeds: [embed] });
+        channel.send({
+          embeds: [new EmbedBuilder()
+            .setColor("#FFD700")
+            .setTitle("🕌 وقت الصلاة")
+            .setDescription(`حان الآن وقت صلاة ${names[key]}`)]
+        });
       }
     }
 
