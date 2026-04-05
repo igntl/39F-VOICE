@@ -1,4 +1,5 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const fetch = require("node-fetch");
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
@@ -7,7 +8,7 @@ const client = new Client({
 const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = "1483676942698811543";
 
-// 📿 أذكار
+// 📿 أذكار متنوعة
 const azkar = [
   "سبحان الله وبحمده سبحان الله العظيم",
   "أستغفر الله العظيم وأتوب إليه",
@@ -24,7 +25,7 @@ const azkar = [
 // 🕌 أوقات الصلاة
 let prayerTimes = {};
 
-// 📥 جلب أوقات الصلاة من API
+// 📥 جلب أوقات الصلاة (مكة)
 async function getPrayerTimes() {
   try {
     const res = await fetch("http://api.aladhan.com/v1/timingsByCity?city=Mecca&country=Saudi Arabia&method=4");
@@ -47,16 +48,16 @@ async function getPrayerTimes() {
 client.once("ready", async () => {
   console.log(`✅ ${client.user.tag} شغال`);
 
-  const channel = client.channels.cache.get(CHANNEL_ID);
+  const channel = await client.channels.fetch(CHANNEL_ID);
   if (!channel) return console.log("❌ الروم غير موجود");
 
-  // أول تحميل
+  // تحميل أوقات الصلاة
   await getPrayerTimes();
 
   // تحديث يومي
   setInterval(getPrayerTimes, 1000 * 60 * 60 * 24);
 
-  // 📿 أذكار كل 30 دقيقة
+  // 📿 أذكار كل 10 دقايق
   setInterval(() => {
     const random = azkar[Math.floor(Math.random() * azkar.length)];
 
@@ -68,7 +69,7 @@ client.once("ready", async () => {
 
     channel.send({ embeds: [embed] });
 
-  }, 1000 * 60 * 30);
+  }, 1000 * 60 * 10);
 
   // 🕌 فحص الصلاة كل دقيقة
   setInterval(() => {
@@ -89,7 +90,7 @@ client.once("ready", async () => {
         const embed = new EmbedBuilder()
           .setColor("#FFD700")
           .setTitle("🕌 وقت الصلاة")
-          .setDescription(`حان الآن وقت صلاة **${names[key]}**\n\n⏰ توجه إلى الصلاة`)
+          .setDescription(`حان الآن وقت صلاة **${names[key]}**\n\n⏰ لا تنس الصلاة`)
           .setFooter({ text: "الصلاة نور 🤍" });
 
         channel.send({ embeds: [embed] });
