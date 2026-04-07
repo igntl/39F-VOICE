@@ -1,174 +1,72 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
-const fetch = require("node-fetch");
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
 const TOKEN = process.env.TOKEN;
-const CHANNEL_ID = "1483676942698811543";
+const CHANNEL_ID = "PUT_CHANNEL_ID_HERE";
 
-// 📿 أذكار
+// 🕌 أذكار متنوعة قوية
 const azkar = [
-  "سبحان الله وبحمده سبحان الله العظيم",
+  "سبحان الله وبحمده، سبحان الله العظيم",
   "أستغفر الله العظيم وأتوب إليه",
   "اللهم صل وسلم على نبينا محمد",
-  "لا إله إلا الله وحده لا شريك له",
-  "حسبي الله لا إله إلا هو عليه توكلت",
-  "اللهم اغفر لي ولوالدي",
-  "اللهم ارزقني حسن الخاتمة",
-  "رب اغفر لي وتب علي",
-  "فاذكروني أذكركم",
-  "إن الصلاة كانت على المؤمنين كتابًا موقوتًا"
+  "لا إله إلا أنت سبحانك إني كنت من الظالمين",
+  "اللهم إنك عفو تحب العفو فاعف عني",
+  "اللهم اجعلنا من الذاكرين الشاكرين",
+  "اللهم ارزقنا راحة البال وطمأنينة القلب",
+  "اللهم اغفر لنا ولوالدينا ولجميع المسلمين",
+  "اللهم اكتب لنا الخير حيث كان",
+  "اللهم اجعلنا من أهل الجنة",
+  "اللهم قنا عذاب النار",
+  "اللهم اجعل القرآن ربيع قلوبنا",
+  "اللهم لا تجعل الدنيا أكبر همنا",
+  "اللهم اجعلنا من الصالحين",
+  "اللهم اهدنا واهد بنا",
+  "اللهم اجعلنا من التوابين",
+  "اللهم ارزقنا الإخلاص في القول والعمل",
+  "اللهم ثبتنا على دينك",
+  "اللهم اجعل يومنا هذا خير",
+  "اللهم ارزقنا السعادة والرضا",
+  "اللهم لا تكلنا لأنفسنا طرفة عين",
+  "اللهم اجعلنا من عبادك الصالحين",
+  "اللهم ارزقنا التوفيق في كل أمر",
+  "اللهم اجعلنا من الشاكرين",
+  "اللهم ارزقنا حسن الخاتمة",
+  "اللهم استرنا فوق الأرض وتحت الأرض ويوم العرض",
+  "اللهم اجعلنا من أهل الذكر",
+  "اللهم ارزقنا القبول",
+  "اللهم اغفر ذنوبنا كلها",
+  "اللهم اجعلنا من المقربين إليك",
+  "اللهم ارزقنا حبك",
+  "اللهم ارزقنا الجنة بغير حساب",
+  "اللهم اجعلنا من أهل الفردوس الأعلى",
+  "اللهم اجعلنا من الصابرين",
+  "اللهم اجعلنا من المتوكلين عليك",
+  "اللهم ارحم موتانا وموتى المسلمين",
+  "اللهم فرج همومنا",
+  "اللهم اشف مرضانا",
+  "اللهم اجعلنا من الذاكرين لك كثيرًا",
+  "اللهم ارزقنا القناعة والرضا"
 ];
 
-// 📖 آيات
-const ayat = [
-  "﴿ فاذكروني أذكركم ﴾",
-  "﴿ إن مع العسر يسرا ﴾",
-  "﴿ والله خير الرازقين ﴾",
-  "﴿ إن الله مع الصابرين ﴾"
-];
+client.once("ready", () => {
+  console.log(`✅ ${client.user.tag} شغال`);
 
-// 🕌 أحاديث
-const ahadith = [
-  "قال ﷺ: أحب الكلام إلى الله سبحان الله وبحمده",
-  "قال ﷺ: من قال لا إله إلا الله دخل الجنة",
-  "قال ﷺ: الدين النصيحة"
-];
+  const channel = client.channels.cache.get(CHANNEL_ID);
 
-// 🤲 أدعية
-const duaa = [
-  "اللهم اغفر لنا ولوالدينا",
-  "اللهم ارزقنا الجنة",
-  "اللهم اجعلنا من الذاكرين",
-  "اللهم فرج همومنا"
-];
-
-let prayerTimes = {};
-let lastZekr = "";
-
-// 📥 جلب أوقات الصلاة
-async function getPrayerTimes() {
-  const res = await fetch("http://api.aladhan.com/v1/timingsByCity?city=Mecca&country=Saudi Arabia&method=4");
-  const data = await res.json();
-
-  prayerTimes = {
-    Fajr: data.data.timings.Fajr,
-    Dhuhr: data.data.timings.Dhuhr,
-    Asr: data.data.timings.Asr,
-    Maghrib: data.data.timings.Maghrib,
-    Isha: data.data.timings.Isha
-  };
-
-  console.log("✅ تحديث الصلاة");
-}
-
-client.once("ready", async () => {
-  console.log(`✅ ${client.user.tag}`);
-
-  const channel = await client.channels.fetch(CHANNEL_ID);
-
-  await getPrayerTimes();
-  setInterval(getPrayerTimes, 1000 * 60 * 60 * 24);
-
-  // 📿 أذكار (بدون تكرار)
   setInterval(() => {
-    let random;
-    do {
-      random = azkar[Math.floor(Math.random() * azkar.length)];
-    } while (random === lastZekr);
-
-    lastZekr = random;
+    const random = azkar[Math.floor(Math.random() * azkar.length)];
 
     const embed = new EmbedBuilder()
-      .setColor("#00ff88")
-      .setTitle("🕊️ ذكر")
-      .setDescription(`**${random}**\n\n📿 اذكر الله يذكرك`);
+      .setColor("#2b2d31")
+      .setDescription(`🕌 ${random}`)
+      .setFooter({ text: "اذكر الله 🤍" });
 
     channel.send({ embeds: [embed] });
 
-  }, 1000 * 60 * 10);
-
-  // 📖 آية كل ساعة
-  setInterval(() => {
-    const random = ayat[Math.floor(Math.random() * ayat.length)];
-
-    channel.send({
-      embeds: [new EmbedBuilder()
-        .setColor("#3498db")
-        .setTitle("📖 آية")
-        .setDescription(random)]
-    });
-
-  }, 1000 * 60 * 60);
-
-  // 🕌 حديث كل ساعتين
-  setInterval(() => {
-    const random = ahadith[Math.floor(Math.random() * ahadith.length)];
-
-    channel.send({
-      embeds: [new EmbedBuilder()
-        .setColor("#9b59b6")
-        .setTitle("🕌 حديث")
-        .setDescription(random)]
-    });
-
-  }, 1000 * 60 * 60 * 2);
-
-  // 🤲 دعاء كل 90 دقيقة
-  setInterval(() => {
-    const random = duaa[Math.floor(Math.random() * duaa.length)];
-
-    channel.send({
-      embeds: [new EmbedBuilder()
-        .setColor("#e67e22")
-        .setTitle("🤲 دعاء")
-        .setDescription(random)]
-    });
-
-  }, 1000 * 60 * 90);
-
-  // 🌅 صباح / مساء
-  setInterval(() => {
-    const time = new Date().toTimeString().slice(0,5);
-
-    if (time === "06:00") {
-      channel.send("🌅 أذكار الصباح 🤍");
-    }
-
-    if (time === "18:00") {
-      channel.send("🌙 أذكار المساء 🤍");
-    }
-
-  }, 60000);
-
-  // 🕌 الصلاة
-  setInterval(() => {
-    const now = new Date().toTimeString().slice(0,5);
-
-    const names = {
-      Fajr: "الفجر",
-      Dhuhr: "الظهر",
-      Asr: "العصر",
-      Maghrib: "المغرب",
-      Isha: "العشاء"
-    };
-
-    for (const key in prayerTimes) {
-      if (now === prayerTimes[key]) {
-
-        channel.send({
-          embeds: [new EmbedBuilder()
-            .setColor("#FFD700")
-            .setTitle("🕌 وقت الصلاة")
-            .setDescription(`حان الآن وقت صلاة ${names[key]}`)]
-        });
-      }
-    }
-
-  }, 60000);
-
+  }, 600000); // كل 10 دقائق
 });
 
 client.login(TOKEN);
