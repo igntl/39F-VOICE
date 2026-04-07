@@ -5,7 +5,7 @@ const client = new Client({
 });
 
 const TOKEN = process.env.TOKEN;
-const CHANNEL_ID = "PUT_CHANNEL_ID_HERE";
+const CHANNEL_ID = "1483676942698811543";
 
 // 🕌 أذكار متنوعة قوية
 const azkar = [
